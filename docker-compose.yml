@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  db:
+    container_name: db
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.mysql
+    volumes:
+      - ./backend/database:/docker-entrypoint-initdb.d/:ro
+    ports:
+      - "3306:3306"
+
+  backend:
+    container_name: backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    depends_on:
+      - db
+    volumes:
+      - ./backend:/app
+  
+  frontend:
+    container_name: frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    healthcheck:
+      test: ["CMD", "lsof", "-t", "-i:3000"]  # Caso utilize outra porta interna para o front, altere ela aqui também
+      timeout: 10s
+      retries: 5
